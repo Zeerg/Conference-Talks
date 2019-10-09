@@ -1,3 +1,4 @@
 boto3
+geoip2
 pandas
 pymapd

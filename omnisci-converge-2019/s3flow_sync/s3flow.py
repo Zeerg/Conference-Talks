@@ -28,21 +28,21 @@ def options_parse(argv=None):
     parser.add_argument(
         "--protocol", help="Protocol for Thrift", default="binary")
     parser.add_argument(
-        "-s", "--host", help="OmniSci server address", default="localhost"
+        "-s", "--host", help="OmniScidb server address", default="localhost"
     )
     parser.add_argument(
-        "-p", "--port", help="OmniSci server port", default="6274"
+        "-p", "--port", help="OmniScidb server port", default="6274"
     )
     parser.add_argument(
-        "-d", "--db", help="OmniSci database name", default="omnisci"
+        "-d", "--db", help="OmniScidb database name", default="omnisci"
     )
     parser.add_argument(
-        "-u", "--user", help="OmniSci user name", default="omnisci"
+        "-u", "--user", help="OmniScidb user name", default="omnisci"
     )
     parser.add_argument(
-        "-w", "--password", help="Omnisci password", default="HyperInteractive"
+        "-w", "--password", help="Omniscidb password", default="HyperInteractive"
     )
-    parser.add_argument("-t", "--table", help="OmniSci table (optional)")
+    parser.add_argument("-t", "--table", help="OmniScidb table")
     return parser.parse_args(argv)
 
 

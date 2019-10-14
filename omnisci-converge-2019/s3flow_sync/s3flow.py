@@ -112,8 +112,8 @@ def create_flow_table(db_conn, table_name=None):
             src_port TEXT ENCODING DICT(32), \
             dest_port TEXT ENCODING DICT(32), \
             protocol TEXT ENCODING DICT(32), \
-            packets TEXT ENCODING DICT(32), \
-            bytes TEXT ENCODING DICT(32), \
+            packets INTEGER, \
+            bytes INTEGER, \
             flowlog_start TIMESTAMP(0), \
             flowlog_end TIMESTAMP(0), \
             action TEXT ENCODING DICT(32), \

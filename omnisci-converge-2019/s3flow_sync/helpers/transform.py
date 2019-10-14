@@ -55,8 +55,14 @@ class PandaTransform(Process):
                 log_struct.srcport = log_list[5]
                 log_struct.dstport = log_list[6]
                 log_struct.protocol = log_list[7]
-                log_struct.packets = log_list[8]
-                log_struct.bytes = log_list[9]
+                if "-" in log_list[8]:
+                    log_struct.packets = None
+                else:
+                    log_struct.packets = int(log_list[8])
+                if "-" in log_list[9]:
+                    log_struct.bytes = None
+                else:
+                    log_struct.bytes = int(log_list[9])
                 log_struct.start = int(log_list[10])
                 log_struct.end = int(log_list[11])
                 log_struct.action = log_list[12]
@@ -80,7 +86,7 @@ class PandaTransform(Process):
                         log_struct.src_country_iso = mmdb_tuple[6]
                 self.transform_queue.put(log_struct.make_tuple())
             self.sync_queue.task_done()
-            time.sleep(.5)
+            time.sleep(1)
             if self.sync_queue.empty():
                 logging.info("Queue Empty")
                 break

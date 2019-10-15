@@ -23,7 +23,7 @@ class OmnisciLoader(Process):
             self.transform_queue.task_done()
             if len(log_list) >= self.batch_size:
                 df = pd.DataFrame(log_list)
-                logging.info("Loading Flow Log Batch Into Table")
+                logging.debug("Loading Flow Log Batch Into Table")
                 try:
                     self.db_connection.load_table_columnar(
                         self.table_name, df, preserve_index=False

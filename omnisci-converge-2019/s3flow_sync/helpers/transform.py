@@ -6,8 +6,6 @@ import ipaddress
 import requests
 
 from multiprocessing import Process
-from OTXv2 import OTXv2
-from OTXv2 import IndicatorTypes
 from .datastruct import LogStruct
 
 
@@ -21,7 +19,7 @@ class PandaTransform(Process):
         if kwargs.get("mmdb", None):
             self.mmdb_geo = geoip2.database.Reader(kwargs.get("mmdb"))
         if kwargs.get("otx_intel", None):
-            self.otx_lookup = True
+            self.otx_lookup = kwargs.get("otx_intel")
             self.headers = {
                 "User-Agent": "Mozilla/5.0\
                  (Macintosh; Intel Mac OS X 10_14_6) \
@@ -36,6 +34,7 @@ class PandaTransform(Process):
             self.otx_frame = pd.DataFrame(
                 [x.split(",") for x in self.otx_string.split("\n")]
             )
+            self.otx_frame.drop(self.otx_frame.columns[[1,2,3,4,5,6,7,8]], axis=1, inplace=True)
 
     def mmdb_lookup(self, src_ip):
         try:
@@ -58,7 +57,7 @@ class PandaTransform(Process):
             item = self.sync_queue.get()
             df = pd.DataFrame(item)
             df.replace(
-                {r: "xxxxxxxxxx" for r in self.mask_values}, regex=True, inplace=True
+                {r: "xxx.xxx." for r in self.mask_values}, regex=True, inplace=True
             )
             big_tup = list(df.itertuples(index=False, name=None))
             geo = False
@@ -79,15 +78,38 @@ class PandaTransform(Process):
                 if "-" in log_list[8]:
                     log_struct.packets = None
                 else:
-                    log_struct.packets = int(log_list[8])
+                    try:
+                        log_struct.packets = int(log_list[8])
+                    except Exception as e:
+                        logging.error(f"Invalid data format for {e}")
+                        log_struct.packets = None
                 if "-" in log_list[9]:
                     log_struct.bytes = None
                 else:
-                    log_struct.bytes = int(log_list[9])
-                log_struct.start = int(log_list[10])
-                log_struct.end = int(log_list[11])
+                    try:
+                        log_struct.bytes = int(log_list[9])
+                    except Exception as e:
+                        logging.error(f"Invalid data format for {e}")
+                        log_struct.bytes = None
+                try:
+                    log_struct.start = int(log_list[10])
+                except Exception as e:
+                    logging.error(f"Invalid data format for {e}")
+                    log_struct.start = None
+
+                try:
+                    log_struct.end = int(log_list[11])
+                except Exception as e:
+                    logging.error(f"Invalid data format for {e}")
+                    log_struct.end = None
+
                 log_struct.action = log_list[12]
-                log_struct.log_status = log_list[13]
+
+                try:
+                    log_struct.log_status = log_list[13]
+                except Exception as e:
+                    logging.error(f"Invalid data format for {e}")
+                    log_struct.log_status = None
 
                 # Don't lookup private IPs
                 try:
@@ -112,10 +134,8 @@ class PandaTransform(Process):
                         log_struct.otx_malicious = None
                 self.transform_queue.put(log_struct.make_tuple())
             self.sync_queue.task_done()
-            time.sleep(1)
             if self.sync_queue.empty():
                 logging.info("Transform Queue Empty")
-                break
 
     def run(self):
         logging.info("Starting the Pandas Process")

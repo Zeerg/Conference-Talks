@@ -34,7 +34,7 @@ class S3Pull(Process):
             obj = self.s3_client.get_object(Bucket=bucket, Key=flow_log)
             df = pd.read_csv(io.BytesIO(obj["Body"].read()), compression="gzip")
             self.sync_queue.put(df)
-            logging.info(f"Putting frame {count} of {key_count} into queue")
+            logging.debug(f"Putting frame {count} of {key_count} into queue")
             count += 1
             time.sleep(0.5)
 

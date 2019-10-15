@@ -167,20 +167,19 @@ def main():
     s3sync_process.daemon = True
     s3sync_process.start()
 
-    time.sleep(2)
+    time.sleep(3)
 
-    for poor_mans_tasks in range(10):
-        transform_process = PandaTransform(
-            mask=options.mask,
-            sync_queue=syncer_queue,
-            transform_queue=transform_queue,
-            mmdb=options.maxmind_db,
-            otx_intel=options.otx_intel,
-        )
-        transform_process.daemon = True
-        transform_process.start()
+    transform_process = PandaTransform(
+        mask=options.mask,
+        sync_queue=syncer_queue,
+        transform_queue=transform_queue,
+        mmdb=options.maxmind_db,
+        otx_intel=options.otx_intel,
+    )
+    transform_process.daemon = True
+    transform_process.start()
 
-    time.sleep(2)
+    time.sleep(3)
 
     loader_process = OmnisciLoader(
         transform_queue=transform_queue,

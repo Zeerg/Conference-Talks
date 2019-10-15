@@ -21,6 +21,7 @@ class LogStruct:
         self.src_zip_code = None
         self.src_country = None
         self.src_country_iso = None
+        self.otx_malicious = False
 
     def make_tuple(self):
         return (
@@ -44,5 +45,6 @@ class LogStruct:
             self.src_state,
             self.src_zip_code,
             self.src_country,
-            self.src_country_iso
+            self.src_country_iso,
+            self.otx_malicious
         )

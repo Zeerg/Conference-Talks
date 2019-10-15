@@ -3,20 +3,39 @@ import pandas as pd
 import geoip2.database
 import time
 import ipaddress
+import requests
 
 from multiprocessing import Process
+from OTXv2 import OTXv2
+from OTXv2 import IndicatorTypes
 from .datastruct import LogStruct
 
 
 class PandaTransform(Process):
     def __init__(self, **kwargs):
         super(PandaTransform, self).__init__()
-        self.mask_values = kwargs.get('mask', [])
-        self.sync_queue = kwargs.get('sync_queue')
-        self.transform_queue = kwargs.get('transform_queue')
-        self.invalid_chars = ['-']
+        self.mask_values = kwargs.get("mask", [])
+        self.sync_queue = kwargs.get("sync_queue")
+        self.transform_queue = kwargs.get("transform_queue")
+        self.invalid_chars = ["-"]
         if kwargs.get("mmdb", None):
             self.mmdb_geo = geoip2.database.Reader(kwargs.get("mmdb"))
+        if kwargs.get("otx_intel", None):
+            self.otx_lookup = True
+            self.headers = {
+                "User-Agent": "Mozilla/5.0\
+                 (Macintosh; Intel Mac OS X 10_14_6) \
+                  AppleWebKit/537.36 (KHTML, like Gecko) \
+                  X5O!P%@AP\\[4\\PZX54(P^)7CC)7\\}$EICAR-STANDARD-ANTIVIRUS-TEST\
+                  -FILE!$H+H*"
+            }
+            self.otx_file = requests.get(
+                "http://reputation.alienvault.com/reputation.data", headers=self.headers
+            )
+            self.otx_string = self.otx_file.text.replace("#", ",")
+            self.otx_frame = pd.DataFrame(
+                [x.split(",") for x in self.otx_string.split("\n")]
+            )
 
     def mmdb_lookup(self, src_ip):
         try:
@@ -38,7 +57,9 @@ class PandaTransform(Process):
         while True:
             item = self.sync_queue.get()
             df = pd.DataFrame(item)
-            df.replace({r: "xxxxxxxxxx" for r in self.mask_values}, regex=True, inplace=True)
+            df.replace(
+                {r: "xxxxxxxxxx" for r in self.mask_values}, regex=True, inplace=True
+            )
             big_tup = list(df.itertuples(index=False, name=None))
             geo = False
             for log_tup in big_tup:
@@ -84,11 +105,16 @@ class PandaTransform(Process):
                         log_struct.src_zip_code = mmdb_tuple[4]
                         log_struct.src_country = mmdb_tuple[5]
                         log_struct.src_country_iso = mmdb_tuple[6]
+                if self.otx_lookup and not private_ip:
+                    if ip_address in self.otx_frame.values:
+                        log_struct.otx_malicious = True
+                    else:
+                        log_struct.otx_malicious = None
                 self.transform_queue.put(log_struct.make_tuple())
             self.sync_queue.task_done()
             time.sleep(1)
             if self.sync_queue.empty():
-                logging.info("Queue Empty")
+                logging.info("Transform Queue Empty")
                 break
 
     def run(self):

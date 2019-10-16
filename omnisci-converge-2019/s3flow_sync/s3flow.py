@@ -167,7 +167,7 @@ def main():
     s3sync_process.daemon = True
     s3sync_process.start()
 
-    time.sleep(3)
+    time.sleep(60)
 
     transform_process = PandaTransform(
         mask=options.mask,
@@ -179,7 +179,7 @@ def main():
     transform_process.daemon = True
     transform_process.start()
 
-    time.sleep(3)
+    time.sleep(5)
 
     loader_process = OmnisciLoader(
         transform_queue=transform_queue,

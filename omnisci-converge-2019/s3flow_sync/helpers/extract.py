@@ -22,7 +22,7 @@ class S3Pull(Process):
         date_string = key + date
         logging.debug(f"Key to Iter: {date_string}")
         file_list = self.paginator.paginate(
-            Bucket=bucket, Prefix=date_string, PaginationConfig={"MaxItems": 20000}
+            Bucket=bucket, Prefix=date_string, PaginationConfig={"MaxItems": 40000}
         )
         keys = []
         for page in file_list:

@@ -141,7 +141,7 @@ def main():
         conn = omnisci_connection(
             host=options.host,
             port=options.port,
-            dbname=options.db,
+            db=options.db,
             user=options.user,
             password=options.password,
             protocol=options.protocol,
